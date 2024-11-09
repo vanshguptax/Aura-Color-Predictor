@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Color Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        .animate-scale-in {
+            animation: scaleIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 min-h-screen flex items-center justify-center">
+    <div id="app" class="bg-white bg-opacity-90 p-8 rounded-2xl shadow-lg max-w-md w-full">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="text-center">
+            <h1 class="text-3xl font-bold mb-4">Welcome to the Aura Color Quiz</h1>
+            <p class="mb-4">Discover your aura color by answering 10 simple questions!</p>
+            <input type="text" id="user-name" placeholder="Enter your name" class="w-full p-2 mb-4 border rounded">
+            <button id="start-quiz" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">Start Quiz</button>
+        </div>
+
+        <!-- Questions Screen -->
+        <div id="questions-screen" class="hidden">
+            <h2 id="question-text" class="text-xl font-semibold mb-4"></h2>
+            <div id="options" class="space-y-2"></div>
+            <div class="mt-4">
+                <span id="question-number" class="text-sm text-gray-500"></span>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden text-center">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800 animate-fade-in">Your Aura Color</h2>
+            <p id="user-result" class="text-2xl mb-6 text-gray-700 animate-fade-in"></p>
+            <div id="aura-color" class="w-40 h-40 rounded-full mx-auto mb-6 shadow-inner animate-scale-in"></div>
+            <p id="aura-description" class="text-lg mb-8 text-gray-600 italic animate-fade-in"></p>
+            <div class="flex justify-center space-x-4 mb-8">
+                <button id="restart-quiz" class="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-full font-semibold shadow-md hover:shadow-lg transition duration-300 animate-fade-in">
+                    Restart Quiz
+                </button>
+            </div>
+            <div class="mb-8 animate-fade-in">
+                <h3 class="text-xl font-semibold mb-4">Share Your Result</h3>
+                <div class="flex justify-center space-x-4">
+                    <button onclick="shareResult('instagram')" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 rounded-full">
+                        <i class="fab fa-instagram"></i>
+                    </button>
+                    <button onclick="shareResult('whatsapp')" class="bg-green-500 text-white p-2 rounded-full">
+                        <i class="fab fa-whatsapp"></i>
+                    </button>
+                    <button onclick="shareResult('facebook')" class="bg-blue-600 text-white p-2 rounded-full">
+                        <i class="fab fa-facebook-f"></i>
+                    </button>
+                    <button onclick="shareResult('twitter')" class="bg-blue-400 text-white p-2 rounded-full">
+                        <i class="fab fa-twitter"></i>
+                    </button>
+                    <button id="copy-link" class="bg-gray-500 text-white p-2 rounded-full">
+                        <i class="fas fa-link"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Copyright Section -->
+        <div class="text-center mt-8 text-sm text-gray-600">
+            <p>&copy; Created by <a href="https://www.instagram.com/vansh_reads/" target="_blank" class="text-blue-500 hover:underline">Vansh Gupta</a></p>
+        </div>
+    </div>
+
+    <script>
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const questionsScreen = document.getElementById('questions-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const startQuizButton = document.getElementById('start-quiz');
+        const restartQuizButton = document.getElementById('restart-quiz');
+        const copyLinkButton = document.getElementById('copy-link');
+        const userNameInput = document.getElementById('user-name');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options');
+        const questionNumber = document.getElementById('question-number');
+        const userResult = document.getElementById('user-result');
+        const auraColor = document.getElementById('aura-color');
+        const auraDescription = document.getElementById('aura-description');
+
+        let currentQuestion = 0;
+        let userResponses = [];
+        const questions = [
+            "How do you typically react to stress?",
+            "What's your preferred way to relax?",
+            "How would you describe your energy levels?",
+            "What's your favorite color?",
+            "How do you approach problem-solving?",
+            "What's your ideal weekend activity?",
+            "How do you express your emotions?",
+            "What's your communication style?",
+            "How do you recharge after a long day?",
+            "What's your attitude towards change?"
+        ];
+
+        const options = [
+            ["Stay calm", "Get anxious", "Become irritable", "Seek support"],
+            ["Read a book", "Exercise", "Meditate", "Socialize"],
+            ["Consistently high", "Varies throughout the day", "Generally low", "Depends on the situation"],
+            ["Blue", "Green", "Red", "Purple"],
+            ["Logically", "Intuitively", "Collaboratively", "Creatively"],
+            ["Outdoor adventure", "Quiet time at home", "Social gathering", "Learning something new"],
+            ["Openly", "Reserved", "Through actions", "It depends on the situation"],
+            ["Direct", "Diplomatic", "Expressive", "Analytical"],
+            ["Alone time", "Physical activity", "Creative pursuits", "Spending time with loved ones"],
+            ["Embrace it", "Resist it", "Adapt slowly", "Analyze before acting"]
+        ];
+
+        const auraColors = {
+            red: { color: "Red", description: "Passionate, energetic, and confident" },
+            orange: { color: "Orange", description: "Creative, adventurous, and sociable" },
+            yellow: { color: "Yellow", description: "Optimistic, intellectual, and cheerful" },
+            green: { color: "Green", description: "Balanced, growth-oriented, and nurturing" },
+            blue: { color: "Blue", description: "Calm, intuitive, and expressive" },
+            indigo: { color: "Indigo", description: "Intuitive, imaginative, and thoughtful" },
+            violet: { color: "Violet", description: "Spiritual, visionary, and creative" }
+        };
+
+        function startQuiz() {
+            welcomeScreen.classList.add('hidden');
+            questionsScreen.classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            questionText.textContent = questions[currentQuestion];
+            optionsContainer.innerHTML = '';
+            options[currentQuestion].forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('w-full', 'text-left', 'p-2', 'rounded', 'hover:bg-gray-100', 'transition', 'duration-300');
+                button.onclick = () => selectOption(index);
+                optionsContainer.appendChild(button);
+            });
+            questionNumber.textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+        }
+
+        function selectOption(index) {
+            userResponses[currentQuestion] = index;
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            questionsScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            const userName = userNameInput.value || "Friend";
+            const userAura = calculateAura();
+            userResult.textContent = `${userName}, your aura color is ${userAura.color}!`;
+            auraColor.style.backgroundColor = userAura.color.toLowerCase();
+            auraDescription.textContent = `"${userAura.description}"`;
+
+            // Apply animations
+            resultScreen.querySelectorAll('.animate-fade-in').forEach(el => {
+                el.style.opacity = '0';
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                }, 100);
+            });
+
+            auraColor.style.transform = 'scale(0)';
+            setTimeout(() => {
+                auraColor.style.transform = 'scale(1)';
+            }, 300);
+        }
+
+        function calculateAura() {
+            const colorScores = { red: 0, orange: 0, yellow: 0, green: 0, blue: 0, indigo: 0, violet: 0 };
+            userResponses.forEach((response, index) => {
+                switch (index) {
+                    case 0: colorScores[response === 0 ? 'blue' : response === 1 ? 'violet' : response === 2 ? 'red' : 'green']++; break;
+                    case 1: colorScores[response === 0 ? 'indigo' : response === 1 ? 'orange' : response === 2 ? 'violet' : 'yellow']++; break;
+                    case 2: colorScores[response === 0 ? 'red' : response === 1 ? 'yellow' : response === 2 ? 'blue' : 'green']++; break;
+                    case 3: colorScores[response === 0 ? 'blue' : response === 1 ? 'green' : response === 2 ? 'red' : 'violet']++; break;
+                    case 4: colorScores[response === 0 ? 'indigo' : response === 1 ? 'violet' : response === 2 ? 'yellow' : 'orange']++; break;
+                    case 5: colorScores[response === 0 ? 'orange' : response === 1 ? 'indigo' : response === 2 ? 'yellow' : 'violet']++; break;
+                    case 6: colorScores[response === 0 ? 'red' : response === 1 ? 'blue' : response === 2 ? 'orange' : 'green']++; break;
+                    case 7: colorScores[response === 0 ? 'red' : response === 1 ? 'green' : response === 2 ? 'orange' : 'indigo']++; break;
+                    case 8: colorScores[response === 0 ? 'indigo' : response === 1 ? 'orange' : response === 2 ? 'violet' : 'green']++; break;
+                    case 9: colorScores[response === 0 ? 'orange' : response === 1 ? 'blue' : response === 2 ? 'green' : 'indigo']++; break;
+                }
+            });
+            const dominantColor = Object.entries(colorScores).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+            return auraColors[dominantColor];
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            userResponses = [];
+            resultScreen.classList.add('hidden');
+            welcomeScreen.classList.remove('hidden');
+            userNameInput.value = '';
+        }
+
+        function shareResult(platform) {
+            const userName = userNameInput.value || "Friend";
+            const userAura = calculateAura();
+            const shareText = `${userName}'s aura color is ${userAura.color}! "${userAura.description}" - Take the Aura Color Quiz now!`;
+            const shareUrl = encodeURIComponent(window.location.href);
+            let url;
+
+            switch (platform) {
+                case 'instagram':
+                    // Instagram doesn't support direct sharing via URL, so we'll copy the text to clipboard
+                    navigator.clipboard.writeText(shareText + ' ' + window.location.href);
+                    alert('Share text copied! You can now paste it into your Instagram post or story.');
+                    return;
+                case 'whatsapp':
+                    url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + window.location.href)}`;
+                    break;
+                case 'facebook':
+                    url = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}&quote=${encodeURIComponent(shareText)}`;
+                    break;
+                case 'twitter':
+                    url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${shareUrl}`;
+                    break;
+            }
+
+            window.open(url, '_blank');
+        }
+
+        function copyLink() {
+            const userName = userNameInput.value || "Friend";
+            const userAura = calculateAura();
+            const shareText = `${userName}'s aura color is ${userAura.color}! "${userAura.description}" - Take the Aura Color Quiz now!`;
+            const fullText = shareText + ' ' + window.location.href;
+
+            navigator.clipboard.writeText(fullText).then(() => {
+                alert('Link copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+
+        startQuizButton.addEventListener('click', startQuiz);
+        restartQuizButton.addEventListener('click', restartQuiz);
+        copyLinkButton.addEventListener('click', copyLink);
+    </script>
+</body>
+</html>
